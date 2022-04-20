@@ -27,7 +27,7 @@ io.on('connection', (socket) => {
       peerSocketId !== socket.id;
     });
 
-    console.log(connectedPeers);
+    console.log(connectedPeers);  
 
   });
 });
