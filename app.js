@@ -34,13 +34,28 @@ io.on('connection', (socket) => {
     }
   })
 
+  socket.on('pre-offer-answer', (data) => {
+    const { callerSocketId } = data;
+    const connectedPeer = connectedPeers.find(
+      (peerSocketId) => peerSocketId === callerSocketId,
+    )
+    if (connectedPeer) {
+      io.to(data.callerSocketId).emit('pre-offer-answer', data)
+    } else {
+      const data  = {
+        preOfferAnswer: 'CALLEE_NOT_FOUND',
+      }
+      io.to(socketId).emit('pre-offer-answer', data);
+    }
+  })
+
   socket.on('disconnect', () => {
     console.log('User disconnected')
 
     // This will filter the disconnected user from the array
-    connectedPeers = connectedPeers.filter((peerSocketId) => {
-      peerSocketId !== socket.id
-    })
+    connectedPeers = connectedPeers.filter(
+      (peerSocketId) => peerSocketId !== socket.id,
+    )
 
     console.log(connectedPeers)
   })
