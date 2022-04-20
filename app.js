@@ -35,17 +35,27 @@ io.on('connection', (socket) => {
   })
 
   socket.on('pre-offer-answer', (data) => {
-    const { callerSocketId } = data;
+    const { callerSocketId } = data
     const connectedPeer = connectedPeers.find(
       (peerSocketId) => peerSocketId === callerSocketId,
     )
     if (connectedPeer) {
       io.to(data.callerSocketId).emit('pre-offer-answer', data)
     } else {
-      const data  = {
+      const data = {
         preOfferAnswer: 'CALLEE_NOT_FOUND',
       }
-      io.to(socketId).emit('pre-offer-answer', data);
+      io.to(socketId).emit('pre-offer-answer', data)
+    }
+  })
+
+  socket.on('webRTC-signaling', (data) => {
+    const { connectedUserSocketId } = data
+    const connectedPeer = connectedPeers.find(
+      (peerSocketId) => peerSocketId === connectedUserSocketId,
+    )
+    if (connectedPeer) {
+      io.to(connectedUserSocketId).emit('webRTC-signaling', data)
     }
   })
 
