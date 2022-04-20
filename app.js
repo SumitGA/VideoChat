@@ -13,9 +13,23 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname+ '/public/index.html');
 })
 
+let connectedPeers = [];
+
 io.on('connection', (socket) => { 
-  console.log('User connected to socket.io server');
-  console.log(socket.id);
+  connectedPeers.push(socket.id);
+  console.log(connectedPeers);
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+
+    // This will filter the disconnected user from the array
+    connectedPeers = connectedPeers.filter((peerSocketId) => {
+      peerSocketId !== socket.id;
+    });
+
+    console.log(connectedPeers);
+
+  });
 });
 
 server.listen(PORT, () => {
