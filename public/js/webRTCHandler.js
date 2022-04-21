@@ -2,6 +2,7 @@ import * as wss from './wss.js'
 import * as constants from './constants.js'
 import * as ui from './ui.js'
 import * as store from './store.js'
+import * as recordingUtils from './recordingUtils.js';
 
 let connectedUserDetails
 let peerConnection
@@ -37,14 +38,14 @@ const createPeerConnection = () => {
   dataChannel = peerConnection.createDataChannel('chat')
 
   peerConnection.ondatachannel = (event) => {
-    const dataChannel = event.channel;
+    const dataChannel = event.channel
     dataChannel.onopen = () => {
-      console.log('Peer connection is ready to receive data channel messages');
+      console.log('Peer connection is ready to receive data channel messages')
     }
 
     dataChannel.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      ui.appendMessage(message);
+      const message = JSON.parse(event.data)
+      ui.appendMessage(message)
     }
   }
 
@@ -251,4 +252,35 @@ export const switchBetweenCameraAndScreenSharing = async (
       console.error('error occurred while switching to screen sharing', err)
     }
   }
+}
+
+// hangup
+export const handleHangUp = () => {
+  const data = {
+    connectedUserSocketId: connectedUserDetails.socketId,
+  }
+
+  wss.sendUserHangedUp(data)
+}
+
+export const handleConnectedUserHangedUp = () => {
+  closePeerConnectionAndResetState()
+}
+
+const closePeerConnectionAndResetState = () => {
+  if (peerConnection) {
+    peerConnection.close()
+    peerConnection = null
+  }
+
+  // active mic and camera
+  if (
+    connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE ||
+    connectedUserDetails.callType === constants.callType.VIDEO_STRANGER
+  ) {
+    store.getState().localStream.getVideoTracks()[0].enabled = true
+    store.getState().localStream.getAudioTracks()[0].enabled = true
+  }
+  ui.updateUiAfterHangUp(connectedUserDetails.callType)
+  connectedUserDetails = null
 }
