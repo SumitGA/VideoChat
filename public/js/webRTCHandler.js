@@ -26,6 +26,8 @@ export const getLocalPreview = () => {
     .getUserMedia(defaultConstraints)
     .then((stream) => {
       ui.updateLocalVideo(stream)
+      ui.showVideoCallButtons();
+      store.setCallState(constants.callState.CALL_AVAILABLE)
       store.setLocalStream(stream)
     })
     .catch((err) => {
