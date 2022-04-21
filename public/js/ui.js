@@ -9,16 +9,16 @@ export const updatePersonalCode = (personalCode) => {
 }
 
 export const updateLocalVideo = (stream) => {
-  const localVideo = document.getElementById('local_video');
-  localVideo.srcObject = stream;
+  const localVideo = document.getElementById('local_video')
+  localVideo.srcObject = stream
   localVideo.addEventListener('loadedmetadata', () => {
-    localVideo.play();
+    localVideo.play()
   })
 }
 
 export const updateRemoteVideo = (stream) => {
   const remoteVideo = document.getElementById('remote_video')
-  remoteVideo.srcObject = stream;
+  remoteVideo.srcObject = stream
 }
 
 export const showIncomingCallDialog = (
@@ -109,15 +109,45 @@ const showVideoCallElements = () => {
   const callButtons = document.getElementById('call_buttons')
   showElement(callButtons)
 
-  const placeHolder = document.getElementById('video_placeholder');
-  hideElement(placeHolder);
+  const placeHolder = document.getElementById('video_placeholder')
+  hideElement(placeHolder)
 
   const remoteVideo = document.getElementById('remote_video')
   showElement(remoteVideo)
   const newMessageInput = document.getElementById('new_message')
   showElement(newMessageInput)
   //block pannel
-  disableDashboard();
+  disableDashboard()
+}
+
+// ui call buttons
+const micOnImgSrc = './utils/images/mic.png'
+const micOffImgSrc = './utils/images/micOff.png'
+export const updateMicButton = (micActive) => {
+  const micButtonImage = document.getElementById('mic_button_image')
+  micButtonImage.src = micActive ? micOffImgSrc : micOnImgSrc
+}
+
+const cameraOnImgSrc = './utils/images/camera.png'
+const cameraOffImgSrc = './utils/images/cameraOff.png'
+export const updateCameraButton = (cameraActive) => {
+  const cameraButtonImage = document.getElementById('camera_button_image')
+  cameraButtonImage.src = cameraActive ? cameraOffImgSrc : cameraOnImgSrc
+}
+
+// ui messages
+export const appendMessage = (message, right = false) => {
+  const messagesContainer = document.getElementById('messages_container')
+  const messageElement = right
+    ? elements.getRightMessage(message)
+    : elements.getLeftMessage(message)
+
+  messagesContainer.appendChild(messageElement)
+}
+
+export const clearMessenger = () => {
+  const messagesContainer = document.getElementById('messages_container')
+  messagesContainer.querySelectorAll('*').forEach((n) => n.remove())
 }
 
 // ui helper functions
