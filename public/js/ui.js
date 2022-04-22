@@ -17,7 +17,9 @@ export const updateLocalVideo = (stream) => {
 }
 
 export const showVideoCallButtons = () => {
-  const personalCodeVideoButton = document.getElementById('personal_code_video_button')
+  const personalCodeVideoButton = document.getElementById(
+    'personal_code_video_button',
+  )
   const strangerVideoButton = document.getElementById('stranger_video_button')
   showElement(personalCodeVideoButton)
   showElement(strangerVideoButton)
@@ -75,10 +77,10 @@ export const showInfoDialog = (preOfferAnswer) => {
       'Please check personal code',
     )
   }
-  if (preOfferAnswer === constants.preOfferAnswer.CALLEE_UNAVAILABLE) {
+  if (preOfferAnswer === constants.preOfferAnswer.CALL_UNAVAILABLE) {
     infoDialog = elements.getInfoDialog(
-      'Callee unavailable',
-      'Please try again later',
+      'Call is not possible',
+      'Probably callee is busy. Please try again later',
     )
   }
 
@@ -193,7 +195,7 @@ export const updateUiAfterHangUp = (callType) => {
     callType === constants.callType.VIDEO_PERSONAL_CODE ||
     callType === constants.callType.VIDEO_STRANGER
   ) {
-    const callButtons = documents.getElementById('call_buttons')
+    const callButtons = document.getElementById('call_buttons')
     hideElement(callButtons)
   } else {
     const chatCallButtons = document.getElementById(
@@ -204,10 +206,11 @@ export const updateUiAfterHangUp = (callType) => {
 
   const newMessageInput = document.getElementById('new_message')
   hideElement(newMessageInput)
+
   clearMessenger()
 
   updateMicButton(false)
-  updateCameraButton(false);
+  updateCameraButton(false)
 
   // hide remote video and show placeholder
   const remoteVideo = document.getElementById('remote_video')
@@ -245,3 +248,5 @@ const showElement = (element) => {
     element.classList.remove('display_none')
   }
 }
+
+

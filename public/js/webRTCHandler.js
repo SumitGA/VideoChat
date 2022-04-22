@@ -2,7 +2,7 @@ import * as wss from './wss.js'
 import * as constants from './constants.js'
 import * as ui from './ui.js'
 import * as store from './store.js'
-import * as recordingUtils from './recordingUtils.js';
+import * as recordingUtils from './recordingUtils.js'
 
 let connectedUserDetails
 let peerConnection
@@ -26,7 +26,7 @@ export const getLocalPreview = () => {
     .getUserMedia(defaultConstraints)
     .then((stream) => {
       ui.updateLocalVideo(stream)
-      ui.showVideoCallButtons();
+      ui.showVideoCallButtons()
       store.setCallState(constants.callState.CALL_AVAILABLE)
       store.setLocalStream(stream)
     })
@@ -108,13 +108,17 @@ export const sendPreOffer = (callType, calleePersonalCode) => {
       calleePersonalCode,
     }
     ui.showCallingDialog(callingDialogRejectCallHandler)
+    store.setCallState(constants.callState.CALL_UNAVAILABLE)
     wss.sendPreOffer(data)
   }
 }
 
-const sendPreOfferAnswer = (preOfferAnswer) => {
+const sendPreOfferAnswer = (preOfferAnswer, callerSocketId = null) => {
+  const socketId = callerSocketId
+    ? callerSocketId
+    : connectedUserDetails.socketId
   const data = {
-    callerSocketId: connectedUserDetails.socketId,
+    callerSocketId: socketId,
     preOfferAnswer,
   }
   ui.removeAllDialogs()
@@ -128,15 +132,28 @@ const acceptCallHandler = () => {
 }
 
 const rejectCallHandler = () => {
+  sendPreOffer()
+  setIncomingCallsAvailable()
   sendPreOfferAnswer(constants.preOfferAnswer.CALL_REJECTED)
 }
 
 export const handlePreOffer = (data) => {
   const { callType, callerSocketId } = data
+
+  if (!checkCallPossibility()) {
+    return sendPreOfferAnswer(
+      constants.preOfferAnswer.CALL_UNAVAILABLE,
+      callerSocketId,
+    )
+  }
+
   connectedUserDetails = {
     socketId: callerSocketId,
     callType,
   }
+
+  store.setCallState(constants.callState.CALL_UNAVAILABLE)
+
   if (
     callType === constants.callType.CHAT_PERSONAL_CODE ||
     callType === constants.callType.VIDEO_PERSONAL_CODE
@@ -146,7 +163,11 @@ export const handlePreOffer = (data) => {
 }
 
 const callingDialogRejectCallHandler = () => {
-  console.log('reject call handler')
+  const data = {
+    connectedUserSocketId: connectedUserDetails.socketId,
+  }
+  closePeerConnectionAndResetState();
+  wss.sendUserHangedUp(data);
 }
 
 export const handlePreOfferAnswer = (data) => {
@@ -156,14 +177,17 @@ export const handlePreOfferAnswer = (data) => {
 
   if (preOfferAnswer === constants.preOfferAnswer.CALLEE_NOT_FOUND) {
     ui.showInfoDialog(preOfferAnswer)
+    setIncomingCallsAvailable()
   }
 
   if (preOfferAnswer === constants.preOfferAnswer.CALL_UNAVAILABLE) {
     ui.showInfoDialog(preOfferAnswer)
+    setIncomingCallsAvailable()
   }
 
   if (preOfferAnswer === constants.preOfferAnswer.CALL_REJECTED) {
     ui.showInfoDialog(preOfferAnswer)
+    setIncomingCallsAvailable()
   }
 
   if (preOfferAnswer === constants.preOfferAnswer.CALL_ACCEPTED) {
@@ -263,6 +287,7 @@ export const handleHangUp = () => {
   }
 
   wss.sendUserHangedUp(data)
+  closePeerConnectionAndResetState()
 }
 
 export const handleConnectedUserHangedUp = () => {
@@ -284,5 +309,31 @@ const closePeerConnectionAndResetState = () => {
     store.getState().localStream.getAudioTracks()[0].enabled = true
   }
   ui.updateUiAfterHangUp(connectedUserDetails.callType)
+  setIncomingCallsAvailable()
   connectedUserDetails = null
+}
+
+const checkCallPossibility = (callType) => {
+  const callState = store.getState().callState
+  if (callState === constants.callState.CALL_AVAILABLE) {
+    return true
+  }
+  if (
+    (callType === constants.callType.VIDEO_PERSONAL_CODE ||
+      callType === constants.callType.VIDEO_STRANGER) &&
+    callState === constants.callState.CALL_AVAILABLE_ONLY_CHAT
+  ) {
+    return false
+  }
+
+  return false
+}
+
+const setIncomingCallsAvailable = () => {
+  const localStream = store.getState().localStream
+  if (localStream) {
+    store.setCallState(constants.callState.CALL_AVAILABLE)
+  } else {
+    store.setCallState(constants.callState.CALL_AVAILABLE_ONLY_CHAT)
+  }
 }

@@ -33,14 +33,12 @@ const personalCodeVideoButton = document.getElementById(
 )
 
 personalCodeChatButton.addEventListener('click', () => {
-  console.log('chat button clicked')
   const calleePersonalCode = document.getElementById('personal_code_input')
     .value
   const callType = constants.callType.CHAT_PERSONAL_CODE
   webRTCHandler.sendPreOffer(callType, calleePersonalCode)
 })
 personalCodeVideoButton.addEventListener('click', () => {
-  console.log('video button clicked')
   const calleePersonalCode = document.getElementById('personal_code_input')
     .value
   const callType = constants.callType.VIDEO_PERSONAL_CODE
@@ -120,11 +118,9 @@ resumeRecordingButton.addEventListener('click', () => {
 const hangUpButton = document.getElementById('hang_up_button')
 hangUpButton.addEventListener('click', () => {
   webRTCHandler.handleHangUp()
-  ui.updateUiAfterHangUp();
 });
 
 const hangUpChatButton = document.getElementById('finish_chat_call_button')
 hangUpChatButton.addEventListener('click', () => {
   webRTCHandler.handleHangUp()
-  ui.updateUiAfterHangUp();
 });
