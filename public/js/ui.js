@@ -63,6 +63,20 @@ export const removeAllDialogs = () => {
   dialog.querySelectorAll('*').forEach((dialog) => dialog.remove())
 }
 
+export const showNoStrangerAvailableDialog = () => {
+  const infoDialog = elements.getInfoDialog(
+    'No stranger available',
+    'Please try again later',
+  )
+  if (infoDialog) {
+    const dialog = document.getElementById('dialog')
+    dialog.appendChild(infoDialog)
+    setTimeout(() => {
+      removeAllDialogs()
+    }, [4000])
+  }
+}
+
 export const showInfoDialog = (preOfferAnswer) => {
   let infoDialog = null
   if (preOfferAnswer === constants.preOfferAnswer.CALL_REJECTED) {
@@ -94,11 +108,17 @@ export const showInfoDialog = (preOfferAnswer) => {
 }
 
 export const showCallElements = (callType) => {
-  if (callType === constants.callType.CHAT_PERSONAL_CODE) {
+  if (
+    callType === constants.callType.CHAT_PERSONAL_CODE ||
+    callType === constants.callType.CHAT_STRANGER
+  ) {
     showChatCallElements()
   }
 
-  if (callType === constants.callType.VIDEO_PERSONAL_CODE) {
+  if (
+    callType === constants.callType.VIDEO_PERSONAL_CODE ||
+    callType === constants.callType.VIDEO_STRANGER
+  ) {
     showVideoCallElements()
   }
 }
@@ -222,6 +242,16 @@ export const updateUiAfterHangUp = (callType) => {
   removeAllDialogs()
 }
 
+// changing status of checkbox
+export const updateStrangerCheckbox = (allowConnections) => {
+  const checkboxCheckImg = document.getElementById(
+    'allow_strangers_checkbox_image',
+  )
+  allowConnections
+    ? showElement(checkboxCheckImg)
+    : hideElement(checkboxCheckImg)
+}
+
 // ui helper functions
 const enableDashboard = () => {
   const dashboardBlocker = document.getElementById('dashboard_blur')
@@ -248,5 +278,3 @@ const showElement = (element) => {
     element.classList.remove('display_none')
   }
 }
-
-

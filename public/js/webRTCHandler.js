@@ -79,7 +79,8 @@ const createPeerConnection = () => {
 
   // add our stream to peer connection
   if (
-    connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE
+    connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE ||
+    connectedUserDetails.callType === constants.callType.VIDEO_STRANGER
   ) {
     const localStream = store.getState().localStream
     for (const track of localStream.getTracks()) {
@@ -108,6 +109,19 @@ export const sendPreOffer = (callType, calleePersonalCode) => {
       calleePersonalCode,
     }
     ui.showCallingDialog(callingDialogRejectCallHandler)
+    store.setCallState(constants.callState.CALL_UNAVAILABLE)
+    wss.sendPreOffer(data)
+  }
+
+  if (
+    callType === constants.callType.CHAT_STRANGER ||
+    callType === constants.callType.VIDEO_STRANGER
+  ) {
+    const data = {
+      callType,
+      calleePersonalCode,
+    }
+    // ui.showCallingDialog(rejectCallHandler)
     store.setCallState(constants.callState.CALL_UNAVAILABLE)
     wss.sendPreOffer(data)
   }
@@ -160,14 +174,23 @@ export const handlePreOffer = (data) => {
   ) {
     ui.showIncomingCallDialog(callType, acceptCallHandler, rejectCallHandler)
   }
+
+  if (
+    callType === constants.callType.CHAT_STRANGER ||
+    callType === constants.callType.VIDEO_STRANGER
+  ) {
+    createPeerConnection()
+    sendPreOfferAnswer(constants.preOfferAnswer.CALL_ACCEPTED)
+    ui.showCallElements(connectedUserDetails.callType)
+  }
 }
 
 const callingDialogRejectCallHandler = () => {
   const data = {
     connectedUserSocketId: connectedUserDetails.socketId,
   }
-  closePeerConnectionAndResetState();
-  wss.sendUserHangedUp(data);
+  closePeerConnectionAndResetState()
+  wss.sendUserHangedUp(data)
 }
 
 export const handlePreOfferAnswer = (data) => {
